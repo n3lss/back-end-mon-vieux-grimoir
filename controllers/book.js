@@ -19,8 +19,8 @@ exports.getOneBook = (req, res, next) => {
   Book.findOne({
     _id: req.params.id
   }).then(
-    (thing) => {
-      res.status(200).json(thing);
+    (book) => {
+      res.status(200).json(book);
     }
   ).catch(
     (error) => {
@@ -75,7 +75,7 @@ exports.modifyBook = (req, res, next) => {
       });
 };
 
-exports.deleteBook = (req, res, next) => {//thing
+exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id})
       .then(book => {
           if (book.userId != req.auth.userId) {
@@ -95,38 +95,35 @@ exports.deleteBook = (req, res, next) => {//thing
 };
 
 exports.bestRating = (req, res, next) => {
-  Book.findOne({
-    _id: req.params.id
-  }).then(
-    (thing) => {
-      res.status(200).json(thing);
-    }
-  ).catch(
-    (error) => {
-      res.status(404).json({
-        error: error
-      });
-    }
-  );
-}
+  Book.find()
+    .sort({ averageRating: -1 })
+    .limit(3)
+    .then(topRatedBooks => {
+      res.status(200).json(topRatedBooks);
+    })
+    .catch(error => {
+      res.status(500).json({ error });
+    });
+};
+ 
 
 exports.newRatingBook = (req, res, next) => {
   const newRating = {
     userId: req.auth.userId,
-    grade: req.body.grade 
+    grade: req.body.rating
   };
 
-  Book.findById(req.params.id)
+  Book.findOne({_id: req.params.id})
     .then(book => {
       if (!book) {
         return res.status(404).json({ message: 'Livre non trouvé' });
       }
       
-      book.rating.push(newRating);
+      book.ratings.push(newRating);
 
-      const totalRatings = book.rating.length;
+      const totalRatings = book.ratings.length;
       let sum = 0;
-      for (const rating of book.rating) {
+      for (const rating of book.ratings) {
         sum += rating.grade;
       }
       const averageRating = sum / totalRatings;
@@ -136,9 +133,10 @@ exports.newRatingBook = (req, res, next) => {
       return book.save();
     })
     .then(updatedBook => {
-      res.status(200).json({ message: 'Note ajoutée avec succès', updatedBook });
+      res.status(200).json(updatedBook);
     })
     .catch(error => {
       res.status(500).json({ error });
     });
 };
+
