@@ -2,12 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
-
+const dotEnv = require('dotenv').config()
 const bookRoutes = require('./routes/book');
 const userRoutes = require('./routes/user');
 
 
-mongoose.connect('mongodb+srv://nelson:n7wy0ITI5ujV6VHg@cluster0.bephz5x.mongodb.net/',{ useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.URL_BDD ,{ useNewUrlParser: true, useUnifiedTopology: true })
 .then(() => console.log('Connexion à MongoDB réussie !'))
 .catch(() => console.log('Connexion à MongoDB échouée !'));
   
